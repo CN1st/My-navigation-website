@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>王孝航 - 收款码</title>
+		<script src="../../js/jquery-1.8.3.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/qrcode.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/html2canvas.js" type="text/javascript" charset="utf-8">
+		</script>
+		<style>
+			* {
+				margin: 0px;
+				padding: 0px;
+				border: 0px;
+			}
+
+			body {
+				overflow-x: hidden;
+			}
+
+			#container {
+				width: 1080px;
+				height: 1920px;
+				margin: 0px auto;
+				background-image: url(img/qrbg.png);
+				text-align: center;
+			}
+
+			#container img {
+				width: auto;
+				height: auto;
+				max-width: 100%;
+				max-height: 100%;
+			}
+
+			#qrcode {
+				padding-top: 65%;
+			}
+		</style>
+		<script>
+			$(function() {
+				var url = {
+					qqpay: "https://i.qianbao.qq.com/wallet/sqrcode.htm?m=tenpay&f=wallet&a=1&ac=F841F5F321D1E476812C35B3BDA2374116DEE394E9D4076100F040518D884AA4&u=870909780&n=Youin",
+					wechatpay: "https://payapp.weixin.qq.com/qr/AQFboOA8JetdJOOhUGwfdML_?t=FQAC#wechat_pay",
+					alipay: "https://qr.alipay.com/tsx00712zmskwyijq3ayd3f"
+				};
+				if (!(/^http(s*):\/\//.test(location.href)) || /^http(s*):\/\/localhost/.test(location.href)) {
+					alert("本收款码需要网站空间进行中转，请先部署到网站下再访问");
+					urlpay = ""
+				} else {
+					if (navigator.userAgent.match(/Alipay/i)) {
+						window.location.href = url.alipay;
+					} else {
+						if (navigator.userAgent.match(/MicroMessenger\//i)) {
+							urlpay = url.wechatpay
+						} else {
+							if (navigator.userAgent.match(/QQ\//i)) {
+								urlpay = url.qqpay
+							} else {
+								urlpay = location.href;
+								//	alert("请使用支付宝/微信/QQ扫码支付！")
+							}
+						}
+					}
+				}
+				var qrcode = new QRCode("qrcode", {
+					text: urlpay,
+					width: 600,
+					height: 600,
+					colorDark: "#000000",
+					colorLight: "#ffffff",
+					correctLevel: QRCode.CorrectLevel.H
+				})
+
+// 				function convertCanvasToImage(canvas) { //canvas转img供手机全屏幕识别
+// 					var image = new Image();
+// 					image.src = canvas.toDataURL("image/png");
+// 					return image;
+// 				}
+				//div转canvas
+// 				html2canvas(document.getElementById('container')).then(function(canvas) {
+// 					$("#container").html(canvas);
+// 				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="container">
+			<div id="qrcode"></div>
+			<span style="font-size: 50px;font-family: " 黑体";">王孝航的收款码</span>
+		</div>
+
+	</body>
+</html>

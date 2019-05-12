@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>抖腿么 - 趣极客 QuGeek</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="keywords" content="QuGeekBlog,QuGeek,qugeek,趣极客,趣极客博客,qujike" />
+		<meta name="description" content="趣极客博主-追随极客精神的个人，日常发布个人生活文章和一些技术文章。">
+		<link rel="shortcut icon" href="https://i.imgur.com/liSFlS3.png">
+		<meta name="theme-color" content="#0C0C0C">
+		<style type="text/css">
+			body,
+			html {
+				overflow: hidden;
+				width: 100%;
+				height: 100%
+			}
+
+			body {
+				font-size: 14px;
+				font-family: monospace;
+				background-color: #000;
+				margin: 0
+			}
+
+			canvas {
+				display: block
+			}
+
+			#loading {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				width: 300px;
+				height: 41px;
+				margin: -21px 0 0 -150px;
+				color: #fff;
+				transition: all 400ms
+			}
+
+			#loading p {
+				margin: 0;
+				line-height: 1.5em;
+				text-align: center
+			}
+
+			#loading p.msg {
+				font-size: .9em;
+				text-transform: uppercase;
+				color: #aaa
+			}
+
+			#loading.hide {
+				opacity: 0;
+				visibility: hidden
+			}
+
+			#playcontrol {
+				cursor: pointer;
+				position: fixed;
+				top: 0;
+				left: 0;
+				color: #fff;
+				background: #000;
+				font-size: 10px;
+				padding: 1em
+			}
+
+			#home {
+				cursor: pointer;
+				position: fixed;
+				top: 0;
+				right: 0;
+				color: #fff;
+				background: #000;
+				font-size: 10px;
+				padding: 1em;
+				text-decoration: none
+			}
+
+			#no-audio {
+				display: none;
+				box-sizing: border-box;
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				height: 140px;
+				width: 260px;
+				margin: -70px 0 0 -130px;
+				padding: 10px 20px;
+				font-size: 14px;
+				border: 1px solid #ff667f;
+				border-radius: 3px;
+				background: #ff3354;
+				color: #ffe5ea;
+				text-shadow: 0 -1px rgba(0, 0, 0, 0.2);
+				box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3), 0 5px 20px rgba(0, 0, 0, 0.5)
+			}
+
+			#no-audio h1 {
+				font-weight: normal;
+				font-size: 18px;
+				margin-top: 7px
+			}
+
+			#no-audio p {
+				color: #ffccd4
+			}
+
+			#no-audio a {
+				font-size: 11px;
+				text-transform: uppercase;
+				text-decoration: none;
+				color: #fff
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id='loading'>
+			<p>加载&hellip;</p>
+			<p class='msg'>- 初始化中 -</p>
+		</div>
+		<div id='no-audio'>
+			<h1>错误 Errors</h1>
+			<p>您的浏览器不支持。 Sorry,we do not support your browser.</p>
+		</div>
+		<a id="home" href="https://qugeek.com/blog/archives/64.html">API / 更多信息</a>
+		<script src="https://cdn.jsdelivr.net/npm/jquery@2.2.4/dist/jquery.min.js"></script>
+		<script type="text/javascript">
+			var media = [];
+			var list = [
+				'https://raw.githubusercontent.com/Cydianrice/JumpJumpHelper/master/Friendships%20(Original%20Mix)%20-%20Pascal%20Letoublon.mp3?raw=true',
+				'https://raw.githubusercontent.com/Cydianrice/JumpJumpHelper/master/Frontier%20-%20Doctor%20Vox.mp3?raw=true',
+				'https://raw.githubusercontent.com/Cydianrice/JumpJumpHelper/master/Take%20Me%20To%20Infinity%20-%20Consoul%20Trainin.mp3?raw=true',
+				'https://raw.githubusercontent.com/Cydianrice/JumpJumpHelper/master/The%20Next%20Episode%20(San%20Holo%20Remix)%20-%20San%20Holo,Snoop%20Dogg,Dr.%20Dre.mp3?raw=true',
+				'https://raw.githubusercontent.com/Cydianrice/JumpJumpHelper/master/Victory%20-%20Two%20Steps%20From%20Hell.mp3?raw=true'
+			];
+			(function($) {
+				$.getUrlParam = function(name) {
+					var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+					var paramurl = encodeURI(window.location.search)
+					var r = paramurl.substr(1).match(reg);
+					if (r != null) return unescape(r[2]);
+					return null;
+				};
+			})(jQuery);
+			if ($.getUrlParam('url') != null) {
+				media.push(decodeURIComponent($.getUrlParam('url')))
+			} else {
+				media.push(list[Math.round(Math.random() * (list.length - 1))])
+			}
+			document.onkeydown = function showkey(e) {
+				var key = e.keyCode || e.which || e.charCode;
+				var ctrl = e.ctrlKey || e.metaKey;
+				var isFocus = $('input').is(":focus");
+				if (key == 32 && isFocus == false) toggleAudio();
+			}
+			var fftSize = 512,
+				background_color = "rgba(0, 0, 1, 1)",
+				background_gradient_color_1 = "#000011",
+				background_gradient_color_2 = "#060D1F",
+				background_gradient_color_3 = "#02243F",
+				stars_color = "#465677",
+				stars_color_2 = "#B5BFD4",
+				stars_color_special = "#F451BA",
+				TOTAL_STARS = 1000,
+				STARS_BREAK_POINT = 100,
+				stars = [],
+				waveform_color = "rgba(29, 36, 57, 0.05)",
+				waveform_color_2 = "rgba(0,0,0,0)",
+				waveform_line_color = "rgba(30, 144, 255, 0.2)",
+				waveform_line_color_2 = "rgba(30, 144, 255, 0.8)",
+				waveform_tick = 0.05,
+				TOTAL_POINTS = fftSize / 2,
+				points = [],
+				bubble_avg_color = "rgba(29, 36, 57, 0.1)",
+				bubble_avg_color_2 = "rgba(29, 36, 57, 0.05)",
+				bubble_avg_line_color = "rgba(77, 218, 248, 1)",
+				bubble_avg_line_color_2 = "rgba(77, 218, 248, 1)",
+				bubble_avg_tick = 0.001,
+				TOTAL_AVG_POINTS = 64,
+				AVG_BREAK_POINT = 100,
+				avg_points = [],
+				SHOW_STAR_FIELD = true,
+				SHOW_WAVEFORM = true,
+				SHOW_AVERAGE = true,
+				AudioContext = (window.AudioContext || window.webkitAudioContext),
+				floor = Math.floor,
+				round = Math.round,
+				random = Math.random,
+				sin = Math.sin,
+				cos = Math.cos,
+				PI = Math.PI,
+				PI_TWO = PI * 2,
+				PI_HALF = PI / 180,
+				w = 0,
+				h = 0,
+				cx = 0,
+				cy = 0,
+				playing = false,
+				startedAt, pausedAt,
+				rotation = 0,
+				msgElement = document.querySelector('#loading .msg'),
+				avg, ctx, actx, asource, gainNode, analyser, frequencyData, frequencyDataLength, timeData;
+
+			function initialize() {
+				if (!AudioContext) return featureNotSupported();
+				ctx = document.createElement("canvas").getContext("2d"), actx = new AudioContext, document.body.appendChild(ctx.canvas),
+					resizeHandler(), initializeAudio()
+			}
+
+			function featureNotSupported() {
+				return hideLoader(), document.getElementById("no-audio").style.display = "block"
+			}
+
+			function hideLoader() {
+				return document.getElementById("loading").className = "hide"
+			}
+
+			function updateLoadingMessage(t) {
+				msgElement.textContent = t
+			}
+
+			function initializeAudio() {
+				var t = new XMLHttpRequest;
+				updateLoadingMessage("- 获取音乐文件 Download -"), t.open("GET", media[0], !0), t.responseType = "arraybuffer", t.onload =
+					function(t) {
+						updateLoadingMessage("- 音乐解码中 Encoding -"), analyser = actx.createAnalyser(), analyser.fftSize = fftSize,
+							analyser.minDecibels = -100, analyser.maxDecibels = -30, analyser.smoothingTimeConstant = .8, actx.decodeAudioData(
+								this.response,
+								function(t) {
+									msgElement.textContent = "- 准备好了 Ready -", audio_buffer = t, gainNode = actx.createGain(), gainNode.connect(
+											analyser), analyser.connect(actx.destination), frequencyDataLength = analyser.frequencyBinCount,
+										frequencyData = new Uint8Array(frequencyDataLength), timeData = new Uint8Array(frequencyDataLength),
+										createStarField(), createPoints(), createAudioControls()
+								},
+								function(t) {
+									alert("错误的参数，你告诉我的音乐地址不正确，加载失败啦! This music url is wrong,please check!")
+								})
+					}, t.send()
+			}
+
+			function createAudioControls() {
+				var t = document.createElement("a");
+				t.setAttribute("id", "playcontrol"), t.textContent = "暂停 Stop / 使用空格键控制", document.body.appendChild(t), t.addEventListener(
+					"click",
+					function(t) {
+						t.preventDefault(), this.textContent = playing ? "开始 Play" : "暂停 Stop", toggleAudio()
+					}), playAudio(), hideLoader()
+			}
+
+			function toggleAudio() {
+				playing ? pauseAudio() : playAudio()
+			}
+
+			function playAudio() {
+				playing = !0, startedAt = pausedAt ? Date.now() - pausedAt : Date.now(), asource = null, asource = actx.createBufferSource(),
+					asource.buffer = audio_buffer, asource.loop = !0, asource.connect(gainNode), pausedAt ? asource.start(0, pausedAt /
+						1e3) : asource.start(), animate()
+			}
+
+			function pauseAudio() {
+				playing = !1, pausedAt = Date.now() - startedAt, asource.stop()
+			}
+
+			function getAvg(t) {
+				var a = 0;
+				return t.forEach(function(t) {
+					a += t
+				}), a / t.length
+			}
+
+			function clearCanvas() {
+				var t = ctx.createLinearGradient(0, 0, 0, h);
+				t.addColorStop(0, background_gradient_color_1), t.addColorStop(.96, background_gradient_color_2), t.addColorStop(1,
+						background_gradient_color_3), ctx.beginPath(), ctx.globalCompositeOperation = "source-over", ctx.fillStyle = t,
+					ctx.fillRect(0, 0, w, h), ctx.fill(), ctx.closePath(), t = null
+			}
+
+			function drawStarField() {
+				var t, a, e, i;
+				for (t = 0, a = stars.length; t < a; t++) e = stars[t], i = avg > AVG_BREAK_POINT ? avg / 20 : avg / 50, e.x += e.dx *
+					i, e.y += e.dy * i, e.z += e.dz, e.dx += e.ddx, e.dy += e.ddy, e.radius = .2 + .1 * (e.max_depth - e.z), e.x < -cx ||
+					e.x > cx || e.y < -cy || e.y > cy ? stars[t] = new Star : (ctx.beginPath(), ctx.globalCompositeOperation =
+						"lighter", ctx.fillStyle = e.color, ctx.arc(e.x + cx, e.y + cy, e.radius, PI_TWO, !1), ctx.fill(), ctx.closePath()
+					);
+				t = a = e = i = null
+			}
+
+			function drawAverageCircle() {
+				var t, a, e, i, n, o;
+				for (avg > AVG_BREAK_POINT ? (rotation += -bubble_avg_tick, i = avg + 10 * random(), ctx.strokeStyle =
+						bubble_avg_line_color_2, ctx.fillStyle = bubble_avg_color_2) : (rotation += bubble_avg_tick, i = avg, ctx.strokeStyle =
+						bubble_avg_line_color, ctx.fillStyle = bubble_avg_color), ctx.beginPath(), ctx.lineWidth = 1, ctx.lineCap =
+					"round", ctx.save(), ctx.translate(cx, cy), ctx.rotate(rotation), ctx.translate(-cx, -cy), ctx.moveTo(avg_points[0]
+						.dx, avg_points[0].dy), t = 0, a = TOTAL_AVG_POINTS; t < a - 1; t++)(e = avg_points[t]).dx = e.x + i * sin(
+					PI_HALF * e.angle), e.dy = e.y + i * cos(PI_HALF * e.angle), n = (e.dx + avg_points[t + 1].dx) / 2, o = (e.dy +
+					avg_points[t + 1].dy) / 2, ctx.quadraticCurveTo(e.dx, e.dy, n, o);
+				(e = avg_points[t]).dx = e.x + i * sin(PI_HALF * e.angle), e.dy = e.y + i * cos(PI_HALF * e.angle), n = (e.dx +
+						avg_points[0].dx) / 2, o = (e.dy + avg_points[0].dy) / 2, ctx.quadraticCurveTo(e.dx, e.dy, n, o), ctx.quadraticCurveTo(
+						n, o, avg_points[0].dx, avg_points[0].dy), ctx.stroke(), ctx.fill(), ctx.restore(), ctx.closePath(), t = a = e =
+					i = n = o = null
+			}
+
+			function drawWaveform() {
+				var t, a, e, i, n, o;
+				for (avg > AVG_BREAK_POINT ? (rotation += waveform_tick, ctx.strokeStyle = waveform_line_color_2, ctx.fillStyle =
+						waveform_color_2) : (rotation += -waveform_tick, ctx.strokeStyle = waveform_line_color, ctx.fillStyle =
+						waveform_color), ctx.beginPath(), ctx.lineWidth = 1, ctx.lineCap = "round", ctx.save(), ctx.translate(cx, cy),
+					ctx.rotate(rotation), ctx.translate(-cx, -cy), ctx.moveTo(points[0].dx, points[0].dy), t = 0, a = TOTAL_POINTS; t <
+					a - 1; t++) e = points[t], i = timeData[t], e.dx = e.x + i * sin(PI_HALF * e.angle), e.dy = e.y + i * cos(PI_HALF *
+					e.angle), n = (e.dx + points[t + 1].dx) / 2, o = (e.dy + points[t + 1].dy) / 2, ctx.quadraticCurveTo(e.dx, e.dy,
+					n, o);
+				i = timeData[t], (e = points[t]).dx = e.x + i * sin(PI_HALF * e.angle), e.dy = e.y + i * cos(PI_HALF * e.angle), n =
+					(e.dx + points[0].dx) / 2, o = (e.dy + points[0].dy) / 2, ctx.quadraticCurveTo(e.dx, e.dy, n, o), ctx.quadraticCurveTo(
+						n, o, points[0].dx, points[0].dy), ctx.stroke(), ctx.fill(), ctx.restore(), ctx.closePath(), t = a = e = i = n =
+					o = null
+			}
+
+			function animate() {
+				playing && (window.requestAnimationFrame(animate), analyser.getByteFrequencyData(frequencyData), analyser.getByteTimeDomainData(
+						timeData), avg = getAvg([].slice.call(frequencyData)) * gainNode.gain.value, clearCanvas(), SHOW_STAR_FIELD &&
+					drawStarField(), SHOW_AVERAGE && drawAverageCircle(), SHOW_WAVEFORM && drawWaveform())
+			}
+
+			function Star() {
+				var t, a;
+				this.x = Math.random() * w - cx, this.y = Math.random() * h - cy, this.z = this.max_depth = Math.max(w / h), this.radius =
+					.2, t = this.x > 0 ? 1 : -1, a = this.y > 0 ? 1 : -1, Math.abs(this.x) > Math.abs(this.y) ? (this.dx = 1, this.dy =
+						Math.abs(this.y / this.x)) : (this.dx = Math.abs(this.x / this.y), this.dy = 1), this.dx *= t, this.dy *= a, this
+					.dz = -.1, this.ddx = .001 * this.dx, this.ddy = .001 * this.dy, this.y > cy / 2 ? this.color = stars_color_2 :
+					avg > AVG_BREAK_POINT + 10 ? this.color = stars_color_2 : avg > STARS_BREAK_POINT ? this.color =
+					stars_color_special : this.color = stars_color, t = a = null
+			}
+
+			function createStarField() {
+				for (var t = -1; ++t < TOTAL_STARS;) stars.push(new Star);
+				t = null
+			}
+
+			function Point(t) {
+				this.index = t.index, this.angle = 360 * this.index / TOTAL_POINTS, this.updateDynamics = function() {
+						this.radius = Math.abs(w, h) / 10, this.x = cx + this.radius * sin(PI_HALF * this.angle), this.y = cy + this.radius *
+							cos(PI_HALF * this.angle)
+					}, this.updateDynamics(), this.value = 256 * Math.random(), this.dx = this.x + this.value * sin(PI_HALF * this.angle),
+					this.dy = this.y + this.value * cos(PI_HALF * this.angle)
+			}
+
+			function AvgPoint(t) {
+				this.index = t.index, this.angle = 360 * this.index / TOTAL_AVG_POINTS, this.updateDynamics = function() {
+						this.radius = Math.abs(w, h) / 10, this.x = cx + this.radius * sin(PI_HALF * this.angle), this.y = cy + this.radius *
+							cos(PI_HALF * this.angle)
+					}, this.updateDynamics(), this.value = 256 * Math.random(), this.dx = this.x + this.value * sin(PI_HALF * this.angle),
+					this.dy = this.y + this.value * cos(PI_HALF * this.angle)
+			}
+
+			function createPoints() {
+				var t;
+				for (t = -1; ++t < TOTAL_POINTS;) points.push(new Point({
+					index: t + 1
+				}));
+				for (t = -1; ++t < TOTAL_AVG_POINTS;) avg_points.push(new AvgPoint({
+					index: t + 1
+				}));
+				t = null
+			}
+
+			function resizeHandler() {
+				w = window.innerWidth, h = window.innerHeight, cx = w / 2, cy = h / 2, ctx.canvas.width = w, ctx.canvas.height = h,
+					points.forEach(function(t) {
+						t.updateDynamics()
+					}), avg_points.forEach(function(t) {
+						t.updateDynamics()
+					})
+			}
+			window.addEventListener("load", initialize, !1), window.addEventListener("resize", resizeHandler, !1);
+		</script>
+	</body>
+	<script src="https://qugeek.com/public.js"></script>
+
+</html>
